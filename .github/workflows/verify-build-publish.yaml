@@ -1,0 +1,22 @@
+name: verify-build-publish
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+jobs:
+  java:
+    uses: cantalay/talay-workflows/.github/workflows/java.yaml@107e3e43dee30ea1b4874c7bc150f90769b55efc
+    with:
+      java-version: "21"
+      build-tool: maven
+      image-name: ghcr.io/cantalay/talay-keycloak-providers
+      push-image: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      upload-sarif: false
