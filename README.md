@@ -46,7 +46,7 @@ Ayarlar `platform-identity` adlı authenticator yapılandırmasındadır (Terraf
 | `gameCenterBundleIds` | izinli iOS paket kimlikleri; boşsa Game Center kapalı |
 | `gameCenterKeyHosts` | sertifika alan adları (`apple.com`) |
 | `gameCenterMaxAgeSeconds` | imza yaşı (900) |
-| `playGamesClientId`, `playGamesClientSecret` | Google OAuth web istemcisi; boşsa Play Games kapalı |
+| `playGamesClientId`, `playGamesClientSecret` | Google OAuth web istemcisi; boşsa Play Games kapalı. Sır `${vault.<anahtar>}` referansı olarak yazılır: Keycloak kasası (`KC_VAULT=file`) dosyadan okur, sır Terraform durumuna düşmez |
 | `playGamesTokenUrl`, `playGamesPlayerUrl` | Google uçları (varsayılanlar) |
 | `createUsers`, `emailDomain`, `lastName` | yeni kullanıcı |
 

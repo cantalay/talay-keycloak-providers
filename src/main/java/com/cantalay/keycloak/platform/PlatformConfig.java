@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -42,13 +43,20 @@ public record PlatformConfig(
     public static final String DEFAULT_PLAYER_URL = "https://games.googleapis.com/games/v1/players/me";
 
     public static PlatformConfig from(Map<String, String> config) {
+        return from(config, UnaryOperator.identity());
+    }
+
+    /**
+     * @param secrets sır alanının çözümü: Keycloak kasası ("${vault.anahtar}" → dosyadaki değer); sır Terraform durumuna düşmez.
+     */
+    public static PlatformConfig from(Map<String, String> config, UnaryOperator<String> secrets) {
         Map<String, String> c = config == null ? Map.of() : config;
         return new PlatformConfig(
                 split(c.get(BUNDLE_IDS)).stream().collect(Collectors.toUnmodifiableSet()),
                 split(c.getOrDefault(KEY_HOSTS, DEFAULT_KEY_HOSTS)),
                 Duration.ofSeconds(parseLong(c.get(MAX_AGE), 900)),
                 blankToNull(c.get(PG_CLIENT_ID)),
-                blankToNull(c.get(PG_CLIENT_SECRET)),
+                blankToNull(c.get(PG_CLIENT_SECRET) == null ? null : secrets.apply(c.get(PG_CLIENT_SECRET))),
                 orDefault(c.get(PG_TOKEN_URL), DEFAULT_TOKEN_URL),
                 orDefault(c.get(PG_PLAYER_URL), DEFAULT_PLAYER_URL),
                 !"false".equalsIgnoreCase(c.get(CREATE_USERS)),

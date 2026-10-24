@@ -42,7 +42,8 @@ public final class PlatformIdentityAuthenticator extends AbstractDirectGrantAuth
             context.failure(AuthenticationFlowError.INVALID_CREDENTIALS, challenge);
             return;
         }
-        PlatformConfig config = PlatformConfig.from(context.getAuthenticatorConfig() == null ? null : context.getAuthenticatorConfig().getConfig());
+        PlatformConfig config = PlatformConfig.from(context.getAuthenticatorConfig() == null ? null : context.getAuthenticatorConfig().getConfig(),
+                PlatformSecrets.of(context.getSession()));
         PlatformIdentity identity;
         try {
             identity = PlatformVerifiers.verify(config, platform, token);

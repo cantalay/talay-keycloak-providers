@@ -65,7 +65,7 @@ public final class PlatformLinkResource {
         if (model == null) return error(Response.Status.SERVICE_UNAVAILABLE, "not_configured");
         PlatformIdentity identity;
         try {
-            identity = PlatformVerifiers.verify(PlatformConfig.from(model.getConfig()), request.platform, request.token);
+            identity = PlatformVerifiers.verify(PlatformConfig.from(model.getConfig(), PlatformSecrets.of(session)), request.platform, request.token);
         } catch (PlatformVerificationException e) {
             LOG.warnf("Platform bağlama reddedildi (%s, realm %s): %s", request.platform, realm.getName(), e.getMessage());
             return error(Response.Status.UNAUTHORIZED, "invalid_platform_token");
