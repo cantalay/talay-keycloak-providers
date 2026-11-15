@@ -1,2 +1,3 @@
 *
 !target/talay-keycloak-providers.jar
+!target/apple-identity-provider.jar
