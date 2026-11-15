@@ -14,6 +14,8 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <keycloak.version>26.7.3</keycloak.version>
+        <apple.idp.version>1.17.0</apple.idp.version>
+        <apple.idp.sha512>04949c18bd2819f6134f7a8fdf446e471036241c537d451e7bf1c627d8eefb1f72374d238bf0037155e725531c587065cfabf1c3f0b7f0df86fb7138effd6bba</apple.idp.sha512>
         <junit.version>5.11.4</junit.version>
         <assertj.version>3.27.3</assertj.version>
     </properties>
@@ -60,6 +62,29 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+            </plugin>
+            <!-- Apple ile giriş (klausbetz/apple-identity-provider-keycloak, Keycloak >= 26.5 için 1.17.x): hazır sürüm JAR'ı
+                 indirilip imaja ikinci eklenti olarak girer; SHA-512 sürüm sayfasındaki değerdir. Sürüm yükseltirken ikisini birlikte değiştirin. -->
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.13.0</version>
+                <executions>
+                    <execution>
+                        <id>apple-identity-provider</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://github.com/klausbetz/apple-identity-provider-keycloak/releases/download/${apple.idp.version}/apple-identity-provider-${apple.idp.version}.jar</url>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <outputFileName>apple-identity-provider.jar</outputFileName>
+                            <sha512>${apple.idp.sha512}</sha512>
+                            <skipCache>true</skipCache>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
