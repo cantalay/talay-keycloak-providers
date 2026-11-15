@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Map;
@@ -21,7 +22,8 @@ class GameCenterVerifierTest {
     private static final String URL = "https://static.gc.apple.com/public-key/gc-prod-10.cer";
     private static TestKeys.Pair apple;
     private static TestKeys.Pair other;
-    private final Instant now = Instant.parse("2026-10-25T10:00:00Z");
+    // the test certificates are issued by keytool at run time (valid 30 days from now): the clock must sit inside that window
+    private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private final Clock clock = Clock.fixed(now, ZoneOffset.UTC);
     private final PlatformConfig config = PlatformConfig.from(Map.of(PlatformConfig.BUNDLE_IDS, BUNDLE));
 
