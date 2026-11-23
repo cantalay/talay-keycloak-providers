@@ -1,1 +1,3 @@
 com.cantalay.keycloak.platform.PlatformIdentityAuthenticator
+com.cantalay.keycloak.broker.VerifiedOnlyAutoLinkAuthenticatorFactory
+com.cantalay.keycloak.broker.UnverifiedAccountGuardAuthenticatorFactory

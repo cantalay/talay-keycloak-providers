@@ -8,7 +8,7 @@
     <version>0.1.0</version>
     <packaging>jar</packaging>
     <name>Talay Keycloak providers</name>
-    <description>Talay platformunun Keycloak eklentileri: Game Center ve Play Games kimliğiyle giriş (direct grant) ve hesap bağlama.</description>
+    <description>Talay platformunun Keycloak eklentileri: Game Center ve Play Games kimliğiyle giriş (direct grant) ve hesap bağlama; sosyal girişte yalnız onaylı hesaba bağlama.</description>
 
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
@@ -18,6 +18,7 @@
         <apple.idp.sha512>04949c18bd2819f6134f7a8fdf446e471036241c537d451e7bf1c627d8eefb1f72374d238bf0037155e725531c587065cfabf1c3f0b7f0df86fb7138effd6bba</apple.idp.sha512>
         <junit.version>5.11.4</junit.version>
         <assertj.version>3.27.3</assertj.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -53,6 +54,19 @@
             <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- Entegrasyon testleri (*IT, failsafe): eklenti JAR'ı yüklü gerçek Keycloak kapsayıcısı. -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -62,6 +76,25 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+            </plugin>
+            <!-- *IT: paketlenmiş JAR'la (package evresinden sonra) Keycloak kapsayıcısında; Docker yoksa atlanır. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <it.providers.jar>${project.build.directory}/${project.build.finalName}.jar</it.providers.jar>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <!-- Apple ile giriş (klausbetz/apple-identity-provider-keycloak, Keycloak >= 26.5 için 1.17.x): hazır sürüm JAR'ı
                  indirilip imaja ikinci eklenti olarak girer; SHA-512 sürüm sayfasındaki değerdir. Sürüm yükseltirken ikisini birlikte değiştirin. -->

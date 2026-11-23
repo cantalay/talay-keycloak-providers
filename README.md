@@ -50,6 +50,30 @@ Ayarlar `platform-identity` adlı authenticator yapılandırmasındadır (Terraf
 | `playGamesTokenUrl`, `playGamesPlayerUrl` | Google uçları (varsayılanlar) |
 | `createUsers`, `emailDomain`, `lastName` | yeni kullanıcı |
 
+## Sosyal giriş bağlama koruması (Google / Apple)
+
+Keycloak'ın `idp-auto-link`'i ilk sosyal girişte aynı e-postalı hesaba **hiç doğrulamadan** bağlar. E-posta onayı zorunlu
+olmayan realm'lerde bu önceden hesap ele geçirmedir: saldırgan kurbanın adresiyle parolalı kayıt olur (onaysız), kurban
+sonra Google ile girince Keycloak Google'ı saldırganın parolasını bildiği hesaba bağlar. İki authenticator bunu kapatır
+(talay-identity `social.tf` kurar):
+
+| Authenticator | Akış | Ne yapar |
+|---|---|---|
+| `idp-auto-link-verified-only` | ilk giriş (`social-first-login`), `idp-create-user-if-unique` ile ALTERNATIVE | Aynı e-postalı hesaba yalnız şu üçü tutarsa bağlar: hesabın e-postası onaylı, sağlayıcının e-postası aynı (büyük/küçük harf duyarsız), sağlayıcı e-postaya kefil (`trustEmail` açık ve belirteçte `email_verified=false` yok). |
+| `idp-unverified-account-guard` | giriş sonrası (`social-post-login`, kimlik sağlayıcının `postBrokerLoginFlowAlias`'ı), REQUIRED | Her sosyal girişte (bağ eskiden kurulmuş olsa da) parolası olan ve e-postası onaylanmamış hesaba oturum açtırmaz. Parolasız hesaplar etkilenmez. |
+
+**Ret:** Keycloak sayfası gösterilmez. Tarayıcı istemcinin dönüş adresine OAuth hata yanıtıyla gider (Keycloak'ın
+"vazgeç" yolu): `<redirect_uri>?error=access_denied&error_description=<neden>&state=…&iss=…`, kod yoktur.
+
+| `error_description` | Anlamı |
+|---|---|
+| `account_exists_unverified` | Bu e-postayla açılmış, e-postası onaylanmamış (parolalı) bir hesap var. Çıkış yolu parola sıfırlama (adres sahipliğini kanıtlar, bilinmeyen parolayı değiştirir, eski oturumları kapatır); onay e-postası değil. |
+| `account_exists` | Hesap var ama bu sağlayıcı kimliği ona bağlanamaz: sağlayıcı e-postayı doğrulamadı ya da yalnız kullanıcı adı çakıştı. |
+
+Reddedilen girişte kullanıcı oluşturulmaz, bağ kurulmaz, kullanıcı oturumu ve SSO çerezi oluşmaz. auth-gateway
+`/social` bu iki nedeni `{error, errorDescription}` gövdesiyle alıp 409 `account_exists_unverified` / `account_exists`
+döner. Olay günlüğünde `federated_identity_account_exists`, ayrıntı `reason`.
+
 ## Dağıtım
 
 - **İmaj:** CI, `ghcr.io/cantalay/talay-keycloak-providers:sha-<7>` imajını üretir. Bu küçük bir busybox imajıdır, JAR'ı
@@ -63,7 +87,9 @@ Ayarlar `platform-identity` adlı authenticator yapılandırmasındadır (Terraf
 ./mvnw verify
 ```
 
-Testler Game Center imzasını testte üretilen anahtarla (JDK keytool), Play Games'i sahte Google sunucusuyla sınar. Gerçek
+Testler Game Center imzasını testte üretilen anahtarla (JDK keytool), Play Games'i sahte Google sunucusuyla sınar.
+`SocialLinkIT` (failsafe, Docker gerekir; yoksa atlanır) paketlenmiş JAR'ı gerçek Keycloak 26.7.3 kapsayıcısına yükler,
+ikinci bir realm'i Google yerine kimlik sağlayıcısı yapar ve tarayıcı akışını HTTP istemcisiyle sürer. Gerçek
 Keycloak'ta denemek için:
 
 ```bash
